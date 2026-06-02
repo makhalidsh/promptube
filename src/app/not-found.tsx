@@ -114,7 +114,7 @@ export default function NotFound() {
         <ColorBends
           rotation={135}
           speed={0.15}
-          colors={["#e63b2e", "#ffcc00", "#0055ff", "#ffffff"] as string[]}
+          colors={["#e63b2e", "#ffcc00", "#0055ff", "#ffffff"] as any}
           transparent
           autoRotate={0}
           scale={1.2}

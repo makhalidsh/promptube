@@ -132,7 +132,7 @@ To prevent exposing sensitive `GEMINI_API_KEY`s to the frontend, credentials are
    ```bash
    npm run dev
    ```
-   Open [http://localhost:3000](http://localhost:3000) in your browser.
+   Open the application in your browser.
 
 ---
 

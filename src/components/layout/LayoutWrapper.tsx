@@ -17,33 +17,24 @@ interface LayoutWrapperProps {
 export default function LayoutWrapper({ children }: LayoutWrapperProps) {
   const { user, authLoading } = useAppContext();
   const pathname = usePathname();
-  const [startupLoading, setStartupLoading] = useState(true);
   const [shouldExit, setShouldExit] = useState(false);
   const [loaderMounted, setLoaderMounted] = useState(true);
 
-  // 1. Run startup timer for minimum load time (1.8s) to show the cool boot sequence
+  // Control exit slide transition and unmount of the loader screen immediately when authLoading finishes
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setStartupLoading(false);
-    }, 1800);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // 2. Control exit slide transition and unmount of the loader screen
-  useEffect(() => {
-    if (!authLoading && !startupLoading) {
+    if (!authLoading) {
       const frame = requestAnimationFrame(() => {
         setShouldExit(true);
       });
       const unmountTimer = setTimeout(() => {
         setLoaderMounted(false);
-      }, 700); // matches slide-up transition duration
+      }, 500); // matches slide-up transition duration
       return () => {
         cancelAnimationFrame(frame);
         clearTimeout(unmountTimer);
       };
     }
-  }, [authLoading, startupLoading]);
+  }, [authLoading]);
 
   // 3. Check if Supabase keys are configured. If not, prompt with a premium Bauhaus Setup Guide.
   if (!isSupabaseConfigured) {

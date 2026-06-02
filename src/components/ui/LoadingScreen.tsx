@@ -66,7 +66,7 @@ export default function LoadingScreen({ shouldExit }: LoadingScreenProps) {
 
   return (
     <div 
-      className={`fixed inset-0 z-50 bg-background text-foreground flex flex-col justify-center items-center px-6 transition-all duration-700 ease-in-out ${
+      className={`fixed inset-0 z-50 bg-background text-foreground flex flex-col justify-center items-center px-6 transition-all duration-500 ease-in-out ${
         shouldExit ? 'translate-y-[-100%] opacity-90' : 'translate-y-0 opacity-100'
       }`}
     >
@@ -75,7 +75,7 @@ export default function LoadingScreen({ shouldExit }: LoadingScreenProps) {
         <ColorBends
           rotation={45}
           speed={0.1}
-          colors={["#e63b2e", "#ffcc00", "#0055ff", "#ffffff"] as string[]}
+          colors={["#e63b2e", "#ffcc00", "#0055ff", "#ffffff"] as any}
           transparent
           autoRotate={0}
           scale={1.1}
