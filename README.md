@@ -114,31 +114,25 @@ To prevent exposing sensitive `GEMINI_API_KEY`s to the frontend, credentials are
 
 ---
 
-## ⚙️ Installation & Database Configuration
+## ⚡ Quick Start
 
-### 1. Clone & Core Dependencies Installation
-Install dependencies cleanly using the package manifest:
-```bash
-npm install
-```
-
-### 2. Telemetry Vault Schema Configuration
-If running your own Supabase cluster, navigate to the **SQL Editor** in your Supabase Dashboard and execute the SQL script in [schema.sql](file:///f:/prompt%20creater/schema.sql) to set up the relational database tables, index allocations, Row-Level Security policies, triggers, and stored procedures.
-
-### 3. Environment Workspace Bindings
-Configure your local environment variables in your `.env.local` file at the root directory:
-```env
-NEXT_PUBLIC_SUPABASE_URL=YOUR_SUPABASE_URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
-GEMINI_API_KEY=YOUR_GEMINI_API_KEY
-```
-
-### 4. Running the Development Workstation
-Execute the Next.js development compilation pipeline:
-```bash
-npm run dev
-```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+1. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
+2. **Configure Database**:
+   Execute the [schema.sql](file:///f:/prompt%20creater/schema.sql) script in your Supabase SQL Editor.
+3. **Set Environment Keys** (in `.env.local`):
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=YOUR_SUPABASE_URL
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+   GEMINI_API_KEY=YOUR_GEMINI_API_KEY
+   ```
+4. **Boot Engine**:
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
