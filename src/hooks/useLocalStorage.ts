@@ -12,17 +12,23 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
 
   // Load from localStorage only after mount (client-side only, after hydration)
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout | null = null;
     try {
       const item = window.localStorage.getItem(key);
       if (item) {
         const parsed = JSON.parse(item);
         if (parsed !== null && parsed !== undefined) {
-          setStoredValue(parsed);
+          timeoutId = setTimeout(() => {
+            setStoredValue(parsed);
+          }, 0);
         }
       }
     } catch (error) {
       console.warn(`Error loading localStorage key "${key}":`, error);
     }
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
     // Only run once on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

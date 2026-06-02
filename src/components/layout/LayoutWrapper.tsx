@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import { useAppContext } from '../AppContext';
 import AuthScreen from '../ui/AuthScreen';
+import LoadingScreen from '../ui/LoadingScreen';
 import { isSupabaseConfigured } from '@/lib/supabaseClient';
 import { usePathname } from 'next/navigation';
 import { AlertTriangle, Terminal, Key } from 'lucide-react';
@@ -15,8 +16,36 @@ interface LayoutWrapperProps {
 
 export default function LayoutWrapper({ children }: LayoutWrapperProps) {
   const { user, authLoading } = useAppContext();
+  const pathname = usePathname();
+  const [startupLoading, setStartupLoading] = useState(true);
+  const [shouldExit, setShouldExit] = useState(false);
+  const [loaderMounted, setLoaderMounted] = useState(true);
 
-  // 1. Check if Supabase keys are configured. If not, prompt with a premium Bauhaus Setup Guide.
+  // 1. Run startup timer for minimum load time (1.8s) to show the cool boot sequence
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setStartupLoading(false);
+    }, 1800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // 2. Control exit slide transition and unmount of the loader screen
+  useEffect(() => {
+    if (!authLoading && !startupLoading) {
+      const frame = requestAnimationFrame(() => {
+        setShouldExit(true);
+      });
+      const unmountTimer = setTimeout(() => {
+        setLoaderMounted(false);
+      }, 700); // matches slide-up transition duration
+      return () => {
+        cancelAnimationFrame(frame);
+        clearTimeout(unmountTimer);
+      };
+    }
+  }, [authLoading, startupLoading]);
+
+  // 3. Check if Supabase keys are configured. If not, prompt with a premium Bauhaus Setup Guide.
   if (!isSupabaseConfigured) {
     return (
       <div className="min-h-screen bg-background text-primary flex flex-col justify-center items-center px-6 py-20 relative overflow-hidden z-50">
@@ -63,7 +92,7 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
             <ul className="text-xs font-bold text-muted-foreground uppercase list-decimal list-inside flex flex-col gap-1">
               <li>CREATE A FREE PROJECT AT <a href="https://supabase.com" target="_blank" rel="noreferrer" className="underline hover:text-accent">SUPABASE.COM</a></li>
               <li>GO TO PROJECT SETTINGS &gt; API</li>
-              <li>COPY THE "PROJECT URL" AND "ANON KEY" (PUBLIC API KEY)</li>
+              <li>COPY THE &quot;PROJECT URL&quot; AND &quot;ANON KEY&quot; (PUBLIC API KEY)</li>
               <li>RESTART THE LOCAL SERVER (`npm run dev`) AFTER SAVING CHANGES</li>
             </ul>
           </div>
@@ -72,33 +101,32 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
     );
   }
 
-  // 2. Render Brutalist loading indicator while loading auth session
-  if (authLoading) {
+  const isAdminRoute = pathname === '/admin';
+  
+  // Detect if route is non-existent (404) to prevent blocking with the auth gate
+  const VALID_ROUTES = ['/', '/dashboard', '/history', '/privacy', '/settings', '/terms', '/admin'];
+  const isNotFound = !VALID_ROUTES.includes(pathname) && !pathname.startsWith('/api');
+  
+  const isPublicRoute = pathname === '/' || pathname === '/privacy' || pathname === '/terms' || isAdminRoute || isNotFound;
+
+  // Render AuthScreen if not authenticated on a protected route (only check after authLoading finishes)
+  const showAuthGate = !authLoading && !user && !isPublicRoute;
+
+  // 4. Authenticated / Standalone Admin Page Layout
+  if (isAdminRoute) {
     return (
-      <div className="min-h-screen bg-background text-primary flex flex-col justify-center items-center relative overflow-hidden">
-        <div className="fixed inset-0 grid-bg pointer-events-none z-0"></div>
-        <div className="relative z-10 flex flex-col items-center gap-6">
-          <div className="flex gap-2">
-            <div className="h-6 w-6 border-4 border-primary bg-secondary animate-bounce [animation-delay:-0.3s]"></div>
-            <div className="h-6 w-6 border-4 border-primary bg-accent animate-bounce [animation-delay:-0.15s]"></div>
-            <div className="h-6 w-6 border-4 border-primary bg-tertiary animate-bounce"></div>
-          </div>
-          <div className="font-headline font-black uppercase tracking-widest text-sm text-primary">
-            VERIFYING AUTHORIZATION KEY...
-          </div>
-        </div>
-      </div>
+      <>
+        {loaderMounted && <LoadingScreen shouldExit={shouldExit} />}
+        <main className="flex-grow flex flex-col">{children}</main>
+      </>
     );
   }
 
-  const pathname = usePathname();
-  const isAdminRoute = pathname === '/admin';
-  const isPublicRoute = pathname === '/' || pathname === '/privacy' || pathname === '/terms' || isAdminRoute;
-
-  // 3. Render members-only authenticating gate if not logged in on protected routes
-  if (!user && !isPublicRoute) {
+  // 5. Render members-only authenticating gate if not logged in on protected routes
+  if (showAuthGate) {
     return (
       <>
+        {loaderMounted && <LoadingScreen shouldExit={shouldExit} />}
         <header className="sticky top-0 z-40 w-full border-b-4 border-primary bg-background transition-colors duration-200">
           <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-2.5">
@@ -115,7 +143,7 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
             </div>
           </div>
         </header>
-        <main className="flex-1 flex flex-col">
+        <main className="flex-grow flex flex-col">
           <AuthScreen />
         </main>
         <Footer />
@@ -123,14 +151,15 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
     );
   }
 
-  // 4. Authenticated / Standalone Admin Page Layout
-  if (isAdminRoute) {
-    return <main className="flex-grow flex flex-col">{children}</main>;
+  // 6. If auth is still checking and loader is mounting, keep displaying the loader without background flash
+  if (authLoading && loaderMounted) {
+    return <LoadingScreen shouldExit={false} />;
   }
 
-  // 5. Authenticated standard state - Render Workspace
+  // 7. Authenticated standard state - Render Workspace
   return (
     <>
+      {loaderMounted && <LoadingScreen shouldExit={shouldExit} />}
       <Navbar />
       <main className="flex-1 flex flex-col">{children}</main>
       <Footer />

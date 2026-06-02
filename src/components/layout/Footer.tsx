@@ -21,7 +21,7 @@ export default function Footer() {
 
         {/* Tech Stack Info */}
         <div className="flex items-center gap-1 text-[11px] font-headline uppercase font-bold text-muted-foreground">
-          <span>Engineered using Next.js & Gemini AI</span>
+          <span>Next.js • Supabase • Three.js • Tailwind CSS</span>
         </div>
 
         {/* Links */}
